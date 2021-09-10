@@ -7,7 +7,6 @@ import { InjectedConnector } from "@web3-react/injected-connector"
 import { providers } from "ethers"
 import { contract } from "contract"
 import { useEffect, useState } from "react"
-import d3 from "d3-scale"
 
 enum Action {
   Feed,
@@ -66,7 +65,22 @@ export default function Home() {
   const { activate, deactivate, active, library, chainId, account } =
     useWeb3React()
 
-  const readContract = contract.connect(provider)
+  const getStatuses = async () => {
+    const readContract = contract.connect(provider)
+
+    const status = await readContract.getStatus()
+    const boredom = await readContract.getBoredom()
+    const uncleanliness = await readContract.getUncleanliness()
+    const hunger = await readContract.getHunger()
+    const sleepiness = await readContract.getSleepiness()
+    const alive = await readContract.getAlive()
+    setStatus(status)
+    setBoredom(boredom)
+    setUncleanliness(uncleanliness)
+    setHunger(hunger)
+    setSleepiness(sleepiness)
+    setAlive(alive)
+  }
 
   const onConnect = async () => {
     await activate(injected)
@@ -76,7 +90,7 @@ export default function Home() {
     deactivate()
   }
 
-  const onAction = (action: Action) => {
+  const onAction = async (action: Action) => {
     if (!active) {
       return
     }
@@ -84,31 +98,22 @@ export default function Home() {
 
     switch (action) {
       case Action.Clean:
+        await actionContract.clean()
         break
       case Action.Feed:
+        await actionContract.feed()
         break
       case Action.Play:
+        await actionContract.play()
         break
       case Action.Sleep:
+        await actionContract.sleep()
         break
     }
+    getStatuses()
   }
 
   useEffect(() => {
-    const getStatuses = async () => {
-      const status = await readContract.getStatus()
-      const boredom = await readContract.getBoredom()
-      const uncleanliness = await readContract.getUncleanliness()
-      const hunger = await readContract.getHunger()
-      const sleepiness = await readContract.getSleepiness()
-      const alive = await readContract.getAlive()
-      setStatus(status)
-      setBoredom(boredom)
-      setUncleanliness(uncleanliness)
-      setHunger(hunger)
-      setSleepiness(sleepiness)
-      setAlive(alive)
-    }
     getStatuses()
   }, [])
 
@@ -203,22 +208,24 @@ export default function Home() {
         <Box as="span" css={{ animation: `${blink} 1000ms infinite` }}>
           &gt;
         </Box>{" "}
-        <Text as="span">{status}</Text>
+        <Text as="span">{status ? status : "Loading..."}</Text>
       </Box>
 
       <Box>
         <Box>
           <Text>Boredom</Text>
           <Box css={{ position: "relative", height: 20 }}>
-            <Box
-              css={{
-                position: "absolute",
-                height: 1,
-                borderTop: `20px solid ${getStatusColor(100 - boredom)}`,
-                width: `${100 - boredom}%`,
-                zIndex: 1,
-              }}
-            />
+            {boredom && (
+              <Box
+                css={{
+                  position: "absolute",
+                  height: 1,
+                  borderTop: `20px solid ${getStatusColor(100 - boredom)}`,
+                  width: `${100 - boredom}%`,
+                  zIndex: 1,
+                }}
+              />
+            )}
 
             <Box
               css={{
@@ -234,15 +241,19 @@ export default function Home() {
         <Box>
           <Text>Uncleanliness</Text>
           <Box css={{ position: "relative", height: 20 }}>
-            <Box
-              css={{
-                position: "absolute",
-                height: 1,
-                borderTop: `20px solid ${getStatusColor(100 - uncleanliness)}`,
-                width: `${100 - uncleanliness}%`,
-                zIndex: 1,
-              }}
-            />
+            {uncleanliness && (
+              <Box
+                css={{
+                  position: "absolute",
+                  height: 1,
+                  borderTop: `20px solid ${getStatusColor(
+                    100 - uncleanliness
+                  )}`,
+                  width: `${100 - uncleanliness}%`,
+                  zIndex: 1,
+                }}
+              />
+            )}
 
             <Box
               css={{
@@ -258,15 +269,17 @@ export default function Home() {
         <Box>
           <Text>Hunger</Text>
           <Box css={{ position: "relative", height: 20 }}>
-            <Box
-              css={{
-                position: "absolute",
-                height: 1,
-                borderTop: `20px solid ${getStatusColor(100 - hunger)}`,
-                width: `${100 - hunger}%`,
-                zIndex: 1,
-              }}
-            />
+            {hunger && (
+              <Box
+                css={{
+                  position: "absolute",
+                  height: 1,
+                  borderTop: `20px solid ${getStatusColor(100 - hunger)}`,
+                  width: `${100 - hunger}%`,
+                  zIndex: 1,
+                }}
+              />
+            )}
 
             <Box
               css={{
@@ -282,15 +295,17 @@ export default function Home() {
         <Box>
           <Text>Sleepiness</Text>
           <Box css={{ position: "relative", height: 20 }}>
-            <Box
-              css={{
-                position: "absolute",
-                height: 1,
-                borderTop: `20px solid ${getStatusColor(100 - sleepiness)}`,
-                width: `${100 - sleepiness}%`,
-                zIndex: 1,
-              }}
-            />
+            {sleepiness && (
+              <Box
+                css={{
+                  position: "absolute",
+                  height: 1,
+                  borderTop: `20px solid ${getStatusColor(100 - sleepiness)}`,
+                  width: `${100 - sleepiness}%`,
+                  zIndex: 1,
+                }}
+              />
+            )}
 
             <Box
               css={{
