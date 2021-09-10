@@ -63,8 +63,8 @@ export default function Home() {
   const [sleepiness, setSleepiness] = useState(null)
   const [alive, setAlive] = useState(null)
   const [love, setLove] = useState(null)
-  const { activate, deactivate, active, library, chainId, account } =
-    useWeb3React()
+  const [tx, setTx] = useState(null)
+  const { activate, deactivate, active, library, account } = useWeb3React()
 
   const getStatuses = async () => {
     const readContract = contract.connect(provider)
@@ -96,6 +96,7 @@ export default function Home() {
   }
 
   const onDisconnect = () => {
+    setTx(null)
     deactivate()
   }
 
@@ -104,22 +105,25 @@ export default function Home() {
       return
     }
     const actionContract = contract.connect(library.getSigner())
-
-    switch (action) {
-      case Action.Clean:
-        await actionContract.clean()
-        break
-      case Action.Feed:
-        await actionContract.feed()
-        break
-      case Action.Play:
-        await actionContract.play()
-        break
-      case Action.Sleep:
-        await actionContract.sleep()
-        break
-    }
-    getStatuses()
+    try {
+      let tx
+      switch (action) {
+        case Action.Clean:
+          tx = await actionContract.clean()
+          break
+        case Action.Feed:
+          tx = await actionContract.feed()
+          break
+        case Action.Play:
+          tx = await actionContract.play()
+          break
+        case Action.Sleep:
+          tx = await actionContract.sleep()
+          break
+      }
+      setTx(tx.hash)
+      getStatuses()
+    } catch (error) {}
   }
 
   useEffect(() => {
@@ -340,7 +344,7 @@ export default function Home() {
           display: "flex",
           justifyContent: "space-between",
           marginTop: "$8",
-          marginBottom: "$9",
+          marginBottom: "$6",
         }}
       >
         <Button disabled={!active} onClick={() => onAction(Action.Clean)}>
@@ -356,6 +360,24 @@ export default function Home() {
           Sleep
         </Button>
       </Box>
+      {tx && (
+        <Box
+          css={{
+            display: "flex",
+            marginBottom: "$9",
+            justifyContent: "center",
+          }}
+        >
+          <Box
+            as="a"
+            target="_blank"
+            href={`https://etherscan.com/tx/${tx}`}
+            css={{ color: "black" }}
+          >
+            Transaction Link
+          </Box>
+        </Box>
+      )}
     </Box>
   )
 }
