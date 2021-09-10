@@ -62,12 +62,12 @@ export default function Home() {
   const [hunger, setHunger] = useState(null)
   const [sleepiness, setSleepiness] = useState(null)
   const [alive, setAlive] = useState(null)
+  const [love, setLove] = useState(null)
   const { activate, deactivate, active, library, chainId, account } =
     useWeb3React()
 
   const getStatuses = async () => {
     const readContract = contract.connect(provider)
-
     const status = await readContract.getStatus()
     const boredom = await readContract.getBoredom()
     const uncleanliness = await readContract.getUncleanliness()
@@ -80,6 +80,15 @@ export default function Home() {
     setHunger(hunger)
     setSleepiness(sleepiness)
     setAlive(alive)
+  }
+
+  const getLove = async (account) => {
+    if (!account) {
+      return
+    }
+    const readContract = contract.connect(provider)
+    const love = await readContract.love(account)
+    setLove(love)
   }
 
   const onConnect = async () => {
@@ -117,12 +126,9 @@ export default function Home() {
     getStatuses()
   }, [])
 
-  console.log({
-    boredom,
-    uncleanliness,
-    hunger,
-    sleepiness: sleepiness?.toString(),
-  })
+  useEffect(() => {
+    getLove(account)
+  }, [account])
 
   return (
     <Box
@@ -159,9 +165,19 @@ export default function Home() {
           <Button onClick={onDisconnect}>Disconnect Wallet</Button>
         )}
         {active && (
-          <Text css={{ marginLeft: "$3" }}>
-            Connected as {account.substring(0, 6)}...
-          </Text>
+          <Box css={{ marginLeft: "$3" }}>
+            <Text css={{ lineHeight: 1 }}>
+              Connected as {account.substring(0, 6)}...
+            </Text>
+            <Box css={{ display: "flex", alignItems: "flex-end" }}>
+              <Box
+                as="img"
+                src="/love.png"
+                css={{ width: 24, marginRight: "$1", paddingBottom: 5 }}
+              />
+              {love && <Text css={{ lineHeight: 1 }}>{love?.toString()}</Text>}
+            </Box>
+          </Box>
         )}
       </Box>
 
