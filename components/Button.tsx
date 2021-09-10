@@ -8,6 +8,7 @@ const Button = styled("div", {
   paddingBottom: "$2",
   fontSize: "$2",
   cursor: "pointer",
+  userSelect: "none",
   "&:hover": {
     opacity: 0.6,
   },
