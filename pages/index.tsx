@@ -109,7 +109,7 @@ export default function Home() {
   }
 
   const onMint = async () => {
-    if (!active) {
+    if (!active || love === 0) {
       return
     }
 
@@ -150,35 +150,12 @@ export default function Home() {
         </Box>
       </Text>
 
-      <Box css={{ display: "flex", alignItems: "center" }}>
-        {!active ? (
-          <Button onClick={onConnect}>Connect Wallet</Button>
-        ) : (
-          <Button onClick={onDisconnect}>Disconnect Wallet</Button>
-        )}
-        {active && (
-          <Box css={{ marginLeft: "$3" }}>
-            <Text css={{ lineHeight: 1 }}>
-              Connected as {account.substring(0, 6)}...
-            </Text>
-            <Box css={{ display: "flex", alignItems: "flex-end" }}>
-              <Box
-                as="img"
-                src="/love.png"
-                css={{ width: 24, marginRight: "$1", paddingBottom: 5 }}
-              />
-              {love && <Text css={{ lineHeight: 1 }}>{love}</Text>}
-            </Box>
-          </Box>
-        )}
-      </Box>
-
       <Box
         css={{
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          marginTop: 100,
+          marginTop: 40,
           marginBottom: "$8",
         }}
       >
@@ -243,7 +220,31 @@ export default function Home() {
         <Star className={star3} />
         <Star className={star5} />
       </Box>
-      {love > 0 && !hasMinted && (
+
+      <Box css={{ display: "flex", alignItems: "center", marginBottom: "$9" }}>
+        {!active ? (
+          <Button onClick={onConnect}>Connect Wallet</Button>
+        ) : (
+          <Button onClick={onDisconnect}>Disconnect Wallet</Button>
+        )}
+        {active && (
+          <Box css={{ marginLeft: "$3" }}>
+            <Text css={{ lineHeight: 1 }}>
+              Connected as {account.substring(0, 6)}...
+            </Text>
+            <Box css={{ display: "flex", alignItems: "flex-end" }}>
+              <Box
+                as="img"
+                src="/love.png"
+                css={{ width: 24, marginRight: "$1", paddingBottom: 5 }}
+              />
+              {love && <Text css={{ lineHeight: 1 }}>{love}</Text>}
+            </Box>
+          </Box>
+        )}
+      </Box>
+
+      {active && !hasMinted && (
         <Box
           css={{
             display: "flex",
@@ -251,11 +252,13 @@ export default function Home() {
             marginBottom: "$8",
           }}
         >
-          <Button onClick={onMint}>mint postcard</Button>
+          <Button disabled={love === 0} onClick={onMint}>
+            {love === 0 ? "for caretakers only" : "mint postcard"}
+          </Button>
         </Box>
       )}
 
-      {love > 0 && hasMinted && (
+      {active && hasMinted && (
         <Box
           css={{
             display: "flex",
