@@ -80,9 +80,11 @@ const provider = new providers.AlchemyProvider(
 )
 
 const readContract = contract.connect(provider)
+const readPfpContract = pfpContract.connect(provider)
 
 export default function Home() {
   const [love, setLove] = useState(null)
+  const [hasMinted, setHasMinted] = useState(null)
   const [tx, setTx] = useState(null)
   const { activate, deactivate, active, library, account } = useWeb3React()
 
@@ -91,7 +93,9 @@ export default function Home() {
       return
     }
     const love = await readContract.love(account)
+    const balance = await readPfpContract.balanceOf(account)
     setLove(love.toNumber())
+    setHasMinted(balance.toNumber() > 0)
   }
 
   const onConnect = async () => {
@@ -239,7 +243,7 @@ export default function Home() {
         <Star className={star3} />
         <Star className={star5} />
       </Box>
-      {love > 0 && (
+      {love > 0 && !hasMinted && (
         <Box
           css={{
             display: "flex",
@@ -247,7 +251,19 @@ export default function Home() {
             marginBottom: "$8",
           }}
         >
-          <Button onClick={onMint}>Mint Postcard</Button>
+          <Button onClick={onMint}>mint postcard</Button>
+        </Box>
+      )}
+
+      {love > 0 && hasMinted && (
+        <Box
+          css={{
+            display: "flex",
+            justifyContent: "center",
+            marginBottom: "$8",
+          }}
+        >
+          <Text>u have already minted ur postcard</Text>
         </Box>
       )}
 
