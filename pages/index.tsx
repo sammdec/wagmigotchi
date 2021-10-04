@@ -1,19 +1,13 @@
 import Box from "components/Box"
 import Text from "components/Text"
 import Button from "components/Button"
-import { keyframes } from "stitches.config"
+import { keyframes, css } from "stitches.config"
 import { useWeb3React } from "@web3-react/core"
 import { InjectedConnector } from "@web3-react/injected-connector"
 import { providers } from "ethers"
-import { contract } from "contract"
+import { contract, pfpContract } from "contract"
 import { useEffect, useState } from "react"
-
-enum Action {
-  Feed,
-  Clean,
-  Play,
-  Sleep,
-}
+import Star from "components/Star"
 
 const blink = keyframes({
   "0%": { opacity: 1 },
@@ -31,12 +25,52 @@ const colorShift = keyframes({
   "100%": { color: "#FF77A8" },
 })
 
+const backgroundShift = keyframes({
+  "0%": { backgroundColor: "rgba(255, 0, 77, 0.2)" },
+  "15%": { backgroundColor: "rgba(0, 228, 54, 0.2)" },
+  "33%": { backgroundColor: "rgba(255, 119, 168, 0.2)" },
+  "50%": { backgroundColor: "rgba(41, 173, 255, 0.2)" },
+  "65%": { backgroundColor: "rgba(131, 118, 156, 0.2)" },
+  "78%": { backgroundColor: "rgba(255, 163, 0, 0.2)" },
+  "88%": { backgroundColor: "rgba(255, 236, 39, 0.2)" },
+  "100%": { backgroundColor: "rgba(255, 119, 168, 0.2)" },
+})
+
 const float = keyframes({
   "0%": { transform: "translateY(0)" },
   "50%": { transform: "translateY(4px)" },
   "99%": { transform: "translateY(-4px)" },
   "100%": { transform: "translateY(-4px)" },
 })
+
+const starStyles = css({
+  width: 30,
+  color: "rgba(255, 236, 39, 1)",
+  position: "absolute",
+  animation: `${blink} 1000ms infinite both alternate`,
+})
+
+const star1 = css(starStyles, { top: "-20%", left: "33%" })()
+const star2 = css(starStyles, {
+  top: "20%",
+  left: "30%",
+  animationDelay: "120ms",
+})()
+const star3 = css(starStyles, {
+  top: "80%",
+  left: "70%",
+  animationDelay: "746ms",
+})()
+const star4 = css(starStyles, {
+  top: "110%",
+  left: "90%",
+  animationDelay: "190ms",
+})()
+const star5 = css(starStyles, {
+  top: "40%",
+  left: "80%",
+  animationDelay: "300ms",
+})()
 
 const injected = new InjectedConnector({ supportedChainIds: [1, 5] })
 
@@ -45,50 +79,23 @@ const provider = new providers.AlchemyProvider(
   "hIvTka6DNWSrY6Z9o-XUz1ey6k_lBfJO"
 )
 
-const getStatusColor = (percent) => {
-  if (percent <= 33) {
-    return "#FF004D"
-  }
-  if (percent > 33 && percent <= 66) {
-    return "#FFEC27"
-  }
-  return "#00E436"
-}
+const readContract = contract.connect(provider)
+const readPfpContract = pfpContract.connect(provider)
 
 export default function Home() {
-  const [status, setStatus] = useState(null)
-  const [boredom, setBoredom] = useState(null)
-  const [uncleanliness, setUncleanliness] = useState(null)
-  const [hunger, setHunger] = useState(null)
-  const [sleepiness, setSleepiness] = useState(null)
-  const [alive, setAlive] = useState(null)
   const [love, setLove] = useState(null)
+  const [hasMinted, setHasMinted] = useState(null)
   const [tx, setTx] = useState(null)
   const { activate, deactivate, active, library, account } = useWeb3React()
-
-  const getStatuses = async () => {
-    const readContract = contract.connect(provider)
-    const status = await readContract.getStatus()
-    const boredom = await readContract.getBoredom()
-    const uncleanliness = await readContract.getUncleanliness()
-    const hunger = await readContract.getHunger()
-    const sleepiness = await readContract.getSleepiness()
-    const alive = await readContract.getAlive()
-    setStatus(status)
-    setBoredom(boredom)
-    setUncleanliness(uncleanliness)
-    setHunger(hunger)
-    setSleepiness(sleepiness)
-    setAlive(alive)
-  }
 
   const getLove = async (account) => {
     if (!account) {
       return
     }
-    const readContract = contract.connect(provider)
     const love = await readContract.love(account)
-    setLove(love)
+    const balance = await readPfpContract.balanceOf(account)
+    setLove(love.toNumber())
+    setHasMinted(balance.toNumber() > 0)
   }
 
   const onConnect = async () => {
@@ -97,38 +104,19 @@ export default function Home() {
 
   const onDisconnect = () => {
     setTx(null)
+    setLove(null)
     deactivate()
   }
 
-  const onAction = async (action: Action) => {
+  const onMint = async () => {
     if (!active) {
       return
     }
-    const actionContract = contract.connect(library.getSigner())
-    try {
-      let tx
-      switch (action) {
-        case Action.Clean:
-          tx = await actionContract.clean()
-          break
-        case Action.Feed:
-          tx = await actionContract.feed()
-          break
-        case Action.Play:
-          tx = await actionContract.play()
-          break
-        case Action.Sleep:
-          tx = await actionContract.sleep()
-          break
-      }
-      setTx(tx.hash)
-      getStatuses()
-    } catch (error) {}
-  }
 
-  useEffect(() => {
-    getStatuses()
-  }, [])
+    const actionPfpContract = pfpContract.connect(library.getSigner())
+    const tx = await actionPfpContract.mint()
+    setTx(tx.hash)
+  }
 
   useEffect(() => {
     getLove(account)
@@ -179,7 +167,7 @@ export default function Home() {
                 src="/love.png"
                 css={{ width: 24, marginRight: "$1", paddingBottom: 5 }}
               />
-              {love && <Text css={{ lineHeight: 1 }}>{love?.toString()}</Text>}
+              {love && <Text css={{ lineHeight: 1 }}>{love}</Text>}
             </Box>
           </Box>
         )}
@@ -197,12 +185,13 @@ export default function Home() {
         <Box
           css={{
             display: "flex",
-            backgroundColor: "LightGray",
             borderRadius: 10,
             paddingLeft: 30,
             paddingRight: 30,
             paddingTop: 30,
             paddingBottom: 30,
+            animation: `${backgroundShift} 4000ms infinite alternate`,
+            position: "relative",
           }}
         >
           <Box
@@ -210,10 +199,14 @@ export default function Home() {
             src="/character.png"
             css={{
               maxWidth: 200,
-              animation: alive ? `${float} 1000ms infinite` : "none",
-              opacity: alive ? 1 : 0.1,
+              animation: `${float} 1000ms infinite`,
             }}
           />
+          <Star className={star1} />
+          <Star className={star2} />
+          <Star className={star3} />
+          <Star className={star4} />
+          <Star className={star5} />
         </Box>
       </Box>
       <Box
@@ -223,143 +216,57 @@ export default function Home() {
           paddingLeft: "$4",
           paddingRight: "$4",
           marginBottom: "$8",
+          position: "relative",
         }}
       >
         <Box as="span" css={{ animation: `${blink} 1000ms infinite` }}>
           &gt;
         </Box>{" "}
-        <Text as="span">{status ? status : "Loading..."}</Text>
+        <Text as="span">dear caretakers</Text>
+        <Text css={{ lineHeight: 1, marginBottom: "$6" }}>
+          i had a very nice time in ur world & im having a great time in the
+          next one!
+        </Text>
+        <Text css={{ lineHeight: 1, marginBottom: "$6" }}>
+          ive made lots of friends with good vibes
+        </Text>
+        <Text css={{ lineHeight: 1, marginBottom: "$6" }}>
+          bc u were so nice, i wanna send u a ~postcard from paradise~ (or
+          "pfp"!)
+        </Text>
+        <Text css={{ lineHeight: 1, marginBottom: "$6" }}>
+          connect ur wallet and mint them from the button below
+        </Text>
+        <Text>miss u lots</Text>
+        <Text>💌 wagmigotchi</Text>
+        <Star className={star2} />
+        <Star className={star3} />
+        <Star className={star5} />
       </Box>
-
-      <Box>
-        <Box>
-          <Text>Boredom</Text>
-          <Box css={{ position: "relative", height: 20 }}>
-            {boredom && (
-              <Box
-                css={{
-                  position: "absolute",
-                  height: 1,
-                  borderTop: `20px solid ${getStatusColor(100 - boredom)}`,
-                  width: `${100 - boredom}%`,
-                  zIndex: 1,
-                }}
-              />
-            )}
-
-            <Box
-              css={{
-                width: "100%",
-                position: "absolute",
-                height: 1,
-                borderTop: "20px solid LightGray",
-              }}
-            />
-          </Box>
+      {love > 0 && !hasMinted && (
+        <Box
+          css={{
+            display: "flex",
+            justifyContent: "center",
+            marginBottom: "$8",
+          }}
+        >
+          <Button onClick={onMint}>mint postcard</Button>
         </Box>
+      )}
 
-        <Box>
-          <Text>Uncleanliness</Text>
-          <Box css={{ position: "relative", height: 20 }}>
-            {uncleanliness && (
-              <Box
-                css={{
-                  position: "absolute",
-                  height: 1,
-                  borderTop: `20px solid ${getStatusColor(
-                    100 - uncleanliness
-                  )}`,
-                  width: `${100 - uncleanliness}%`,
-                  zIndex: 1,
-                }}
-              />
-            )}
-
-            <Box
-              css={{
-                width: "100%",
-                position: "absolute",
-                height: 1,
-                borderTop: "20px solid LightGray",
-              }}
-            />
-          </Box>
+      {love > 0 && hasMinted && (
+        <Box
+          css={{
+            display: "flex",
+            justifyContent: "center",
+            marginBottom: "$8",
+          }}
+        >
+          <Text>u have already minted ur postcard</Text>
         </Box>
+      )}
 
-        <Box>
-          <Text>Hunger</Text>
-          <Box css={{ position: "relative", height: 20 }}>
-            {hunger && (
-              <Box
-                css={{
-                  position: "absolute",
-                  height: 1,
-                  borderTop: `20px solid ${getStatusColor(100 - hunger)}`,
-                  width: `${100 - hunger}%`,
-                  zIndex: 1,
-                }}
-              />
-            )}
-
-            <Box
-              css={{
-                width: "100%",
-                position: "absolute",
-                height: 1,
-                borderTop: "20px solid LightGray",
-              }}
-            />
-          </Box>
-        </Box>
-
-        <Box>
-          <Text>Sleepiness</Text>
-          <Box css={{ position: "relative", height: 20 }}>
-            {sleepiness && (
-              <Box
-                css={{
-                  position: "absolute",
-                  height: 1,
-                  borderTop: `20px solid ${getStatusColor(100 - sleepiness)}`,
-                  width: `${100 - sleepiness}%`,
-                  zIndex: 1,
-                }}
-              />
-            )}
-
-            <Box
-              css={{
-                width: "100%",
-                position: "absolute",
-                height: 1,
-                borderTop: "20px solid LightGray",
-              }}
-            />
-          </Box>
-        </Box>
-      </Box>
-
-      <Box
-        css={{
-          display: "flex",
-          justifyContent: "space-between",
-          marginTop: "$8",
-          marginBottom: "$6",
-        }}
-      >
-        <Button disabled={!active} onClick={() => onAction(Action.Clean)}>
-          Clean
-        </Button>
-        <Button disabled={!active} onClick={() => onAction(Action.Feed)}>
-          Feed
-        </Button>
-        <Button disabled={!active} onClick={() => onAction(Action.Play)}>
-          Play
-        </Button>
-        <Button disabled={!active} onClick={() => onAction(Action.Sleep)}>
-          Sleep
-        </Button>
-      </Box>
       {tx && (
         <Box
           css={{
