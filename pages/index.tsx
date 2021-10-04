@@ -227,8 +227,8 @@ export default function Home() {
           ive made lots of friends with good vibes
         </Text>
         <Text css={{ lineHeight: 1, marginBottom: "$6" }}>
-          bc u were so nice, i wanna send u some ~postcards from paradise~ (or
-          "pfps"!)
+          bc u were so nice, i wanna send u a ~postcard from paradise~ (or
+          "pfp"!)
         </Text>
         <Text css={{ lineHeight: 1, marginBottom: "$6" }}>
           connect ur wallet and mint them from the button below
