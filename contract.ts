@@ -377,4 +377,4 @@ const pfpAbi = [
 
 export const pfpAddress = "0x75c3B1035B1898dc96C22481f886A80aDFd69c7a"
 
-export const pfpContract = new Contract(address, pfpAbi)
+export const pfpContract = new Contract(pfpAddress, pfpAbi)

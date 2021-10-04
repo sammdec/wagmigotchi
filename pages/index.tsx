@@ -219,18 +219,18 @@ export default function Home() {
           &gt;
         </Box>{" "}
         <Text as="span">dear caretakers</Text>
-        <Text css={{ lineHeight: 1.1, marginBottom: "$6" }}>
+        <Text css={{ lineHeight: 1, marginBottom: "$6" }}>
           i had a very nice time in ur world & im having a great time in the
           next one!
         </Text>
-        <Text css={{ lineHeight: 1.1, marginBottom: "$6" }}>
+        <Text css={{ lineHeight: 1, marginBottom: "$6" }}>
           ive made lots of friends with good vibes
         </Text>
-        <Text css={{ lineHeight: 1.1, marginBottom: "$6" }}>
+        <Text css={{ lineHeight: 1, marginBottom: "$6" }}>
           bc u were so nice, i wanna send u some ~postcards from paradise~ (or
           "pfps"!)
         </Text>
-        <Text css={{ lineHeight: 1.1, marginBottom: "$6" }}>
+        <Text css={{ lineHeight: 1, marginBottom: "$6" }}>
           connect ur wallet and mint them from the button below
         </Text>
         <Text>miss u lots</Text>
